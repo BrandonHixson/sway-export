@@ -5,25 +5,24 @@ on:
     - cron: "0 12 * * 1" # Mondays 12:00 UTC (8am New York during daylight time)
   workflow_dispatch: # run manually from the Actions tab
 
+concurrency:
+  group: sway-export
+  cancel-in-progress: true
+
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5            # a hung run can't burn 10 minutes
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - run: npm ci
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Export Sway to PDF
         env:
+          PW_CHANNEL: chrome
           SWAY_URL: ${{ vars.SWAY_URL }}
         run: |
           if [ -n "$SWAY_URL" ]; then
@@ -31,9 +30,8 @@ jobs:
           else
             npx tsx sway_export_pdf.ts -o week.pdf
           fi
-
       - uses: actions/upload-artifact@v4
         with:
           name: sway-pdf
           path: week.pdf
-          retention-days: 30
+          retention-days: 7

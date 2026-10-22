@@ -41,7 +41,10 @@ async function exportSway({
 }: ExportOptions): Promise<void> {
   const label = fmt === "pdf" ? "PDF" : "Word";
 
-  const browser = await chromium.launch({ headless: !headed });
+  const browser = await chromium.launch({
+  headless: !headed,
+  channel: process.env.PW_CHANNEL, // "chrome" in CI, unset locally
+  });
   try {
     const context = await browser.newContext({
       viewport: { width: 1280, height: 900 },
