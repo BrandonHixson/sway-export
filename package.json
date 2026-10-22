@@ -1,0 +1,19 @@
+{
+  "name": "sway-export",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Export a public Microsoft Sway to PDF or Word using Playwright",
+  "type": "module",
+  "scripts": {
+    "export": "tsx sway_export_pdf.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

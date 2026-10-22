@@ -1,0 +1,39 @@
+name: Export Sway
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # Mondays 12:00 UTC (8am New York during daylight time)
+  workflow_dispatch: # run manually from the Actions tab
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Export Sway to PDF
+        env:
+          SWAY_URL: ${{ vars.SWAY_URL }}
+        run: |
+          if [ -n "$SWAY_URL" ]; then
+            npx tsx sway_export_pdf.ts "$SWAY_URL" -o week.pdf
+          else
+            npx tsx sway_export_pdf.ts -o week.pdf
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sway-pdf
+          path: week.pdf
+          retention-days: 30
