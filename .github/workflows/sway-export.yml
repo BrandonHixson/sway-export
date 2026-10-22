@@ -2,7 +2,7 @@ name: Export Sway
 
 on:
   schedule:
-    - cron: "0 12 * * 1" # Mondays 12:00 UTC (8am New York during daylight time)
+    - cron: "0 19 * * 1,2" # Mondays and Tuesdays at 3:00 PM ET (19:00 UTC)
   workflow_dispatch: # run manually from the Actions tab
 
 concurrency:
