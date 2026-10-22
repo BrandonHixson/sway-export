@@ -12,26 +12,54 @@ concurrency:
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 5            # a hung run can't burn 10 minutes
+    timeout-minutes: 15           # ~2-3 min per Sway; a hung run can't burn forever
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Export Sway to PDF
+      - name: Export Sways to PDF
         env:
           PW_CHANNEL: chrome
+          # One URL per line. Blank lines and CRLF line endings are ignored.
           SWAY_URL: ${{ vars.SWAY_URL }}
         run: |
-          if [ -n "$SWAY_URL" ]; then
-            npx tsx sway_export_pdf.ts "$SWAY_URL" -o week.pdf
+          mkdir -p out
+          status=0
+          i=0
+
+          # No URLs set -> fall back to the script's default URL
+          if [ -z "$(printf '%s' "$SWAY_URL" | tr -d '[:space:]')" ]; then
+            npx tsx sway_export_pdf.ts -o out/week.pdf || status=1
           else
-            npx tsx sway_export_pdf.ts -o week.pdf
+            while IFS= read -r line || [ -n "$line" ]; do
+              # trim leading/trailing whitespace (also strips \r)
+              url="$(printf '%s' "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+              [ -z "$url" ] && continue
+
+              i=$((i + 1))
+              id="${url%%\?*}"   # drop query string
+              id="${id##*/}"     # last path segment = Sway ID
+              file="out/$(printf '%02d' "$i")-${id:-sway}.pdf"
+
+              echo "::group::[$i] $url"
+              # keep going if one fails so the others still export
+              npx tsx sway_export_pdf.ts "$url" -o "$file" || {
+                echo "::error::Export failed for $url"
+                status=1
+              }
+              echo "::endgroup::"
+            done <<< "$SWAY_URL"
           fi
+
+          ls -l out
+          exit $status
       - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}   # still upload the successful PDFs if one URL failed
         with:
           name: sway-pdf
-          path: week.pdf
+          path: out/*.pdf
+          if-no-files-found: error
           retention-days: 7
