@@ -1,5 +1,8 @@
 name: Export Sway
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 19 * * 1,2" # Mondays and Tuesdays at 3:00 PM ET (19:00 UTC)
@@ -11,6 +14,8 @@ concurrency:
 
 jobs:
   export:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 15           # ~2-3 min per Sway; a hung run can't burn forever
     steps:
