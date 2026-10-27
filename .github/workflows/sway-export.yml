@@ -5,7 +5,8 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 19 * * 1,2" # Mondays and Tuesdays at 3:00 PM ET (19:00 UTC)
+    - cron: "0 19 * * 1,2"
+      timezone: "America/New_York"
   workflow_dispatch: # run manually from the Actions tab
 
 concurrency:
