@@ -5,7 +5,7 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 19 * * 1,2"
+    - cron: "47 15 * * 1,2"
       timezone: "America/New_York"
   workflow_dispatch: # run manually from the Actions tab
 
